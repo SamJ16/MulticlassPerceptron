@@ -5,4 +5,4 @@ If this dataset has a good amount of variety, then I guess the network is half d
 
 If anyone can tell me how I can improve the accuracy of the network on the training data from the website above and also the accuracy on the population data, that would be immensely helpful.
 Feel free to use it if you think it works.
-DISCLAIMER: But if it doesn't work, don't blame because you're technically using a prototype that still requires development.
+DISCLAIMER: But if it doesn't work, don't blame me because you're technically using a prototype that still requires development.
