@@ -7,9 +7,9 @@ def classify(row, weights):
     most_prob_class = list(weights.keys())[0]
     # key is class and value is corresponding list/vector of weights
     for key, value in weights.items():
-        activation = value[0]
+        activation = 0
         for i in range(len(row)-1):
-            activation += row[i]*value[i+1]
+            activation += row[i]*value[i]
         if activation > best_val:
             best_val = activation
             most_prob_class = key
@@ -18,10 +18,10 @@ def classify(row, weights):
     return best_val, most_prob_class
 
 def comparison_classify(row, weightlist):
-    activation = weightlist[0]
+    activation = 0
     for i in range(len(row)-1):
-        activation += row[i]*weightlist[i+1]
-    return 1.0 if activation >= 0.0 else 0.0
+        activation += row[i]*weightlist[i]
+    return activation if activation >= 0.0 else 0.0
 
 def abs(f):
     if f < 0.0: return 0.0 - f
@@ -49,33 +49,30 @@ def learn_weights(csv_path):
     num_attrs = pd.Series(data.columns)
     for clas in uniq_classes:
         wts = []
-        for i in range(len(num_attrs)):
+        for i in range(len(num_attrs)-1):
             wts.append(0.0)
         weights[clas] = wts
-    epochs = 900
+    epochs = 1000
     # epoch = 0
     # while accuracy(csv_path, weights) < 0.8:
     #     epoch += 1
     for epoch in range(epochs):
-        first_update = True
+        # print(weights)
         for row in data.itertuples():
             row2 = list(row)[1:len(row)]
             expected, cl = classify(row2, weights)
             if cl == row2[-1]: continue
             else:
-                if first_update:
-                    weights[cl][0] = weights[cl][0] - row2[-1]*0.001
-                    weights[row2[-1]][0] = weights[row2[-1]][0] + cl*0.001
+                # print(cl, row2[-1])
+                if weights[cl] == [0.0 for weight in weights[cl]] or weights[row2[-1]] == [0.0 for weight in weights[row2[-1]]]:
                     for i in range(len(row2)-1):
-                        weights[cl][i+1] = weights[cl][i+1] - row2[i]*0.01
-                        weights[row2[-1]][i+1] = weights[row2[-1]][i+1] + row2[i]*0.01
-                    first_update = False
+                        weights[cl][i] = weights[cl][i] + 0.01
+                        weights[row2[-1]][i] = weights[row2[-1]][i] + 0.1
                 else:
-                    weights[cl][0] = weights[cl][0] - comparison_classify(row2, weights[row2[-1]])*0.001
-                    weights[row2[-1]][0] = weights[row2[-1]][0] + comparison_classify(row2, weights[cl])*0.001
+                    error = abs(comparison_classify(row2, weights[cl]) - comparison_classify(row2, weights[row2[-1]]))
                     for i in range(len(row2)-1):
-                        weights[cl][i+1] = weights[cl][i+1] - weights[cl][i]*0.001*(1.0-float((float(epochs)-epoch)/float(epochs)))
-                        weights[row2[-1]][i+1] = weights[row2[-1]][i+1] + weights[row2[-1]][i]*0.001*(1.0-float((float(epochs)-epoch)/float(epochs)))
+                        weights[cl][i] = weights[cl][i] - row2[i]*0.001*(1.0/error)*error
+                        weights[row2[-1]][i] = weights[row2[-1]][i] + row2[i]*0.001*(1.0/error)*error
     return weights
 
 def accuracy(f, weights):
@@ -99,10 +96,3 @@ if __name__ == '__main__':
         print("class {}: {}".format(c, ",".join([str(w) for w in wts])))
     print(accuracy(path_to_csv, class__weights))
     # print(accuracy(path_to_csv, {'0': [0.0, 0.0, 0.0], '1': [-0.1, 0.20653640140000007, -0.23418117710000003]}))
-
-
-
-
-
-
-
